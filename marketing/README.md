@@ -1,4 +1,4 @@
-## Market
+# Marketing
 
 https://pimcore.com/en/digital-asset-management#features
 
