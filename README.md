@@ -38,7 +38,7 @@ It should provide processes to categorize media assets and handle tasks such as:
 - Support models for group, roles, user, namespace as well?
 - Time scheduled publishing?
 - Access history?
-- Group, USer, Role Content References
+- Group, User, Role Content References
 
 ## Phases
 
