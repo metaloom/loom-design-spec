@@ -20,3 +20,4 @@
 * 4: S3 Event? -> Extension -> Create Asset -> Asset (download, presignedUrl, download redirect, s3 link rendering)
 
 ## Requirements
+

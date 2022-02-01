@@ -40,6 +40,23 @@ It should provide processes to categorize media assets and handle tasks such as:
 - Access history?
 - Group, USer, Role Content References
 
+## Phases
+
+### Phase 0 (MVP)
+
+- Assets + Pipeline
+- UI for assets / pipeline / asset views
+- CLI
+
+### Phase 1
+
+- Search
+- ACL
+
+### Phase 2
+
+- Contents / Models
+
 ## Links
 
 * https://github.com/orgs/metaloom
