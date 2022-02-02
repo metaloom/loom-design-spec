@@ -6,7 +6,9 @@ List of pipeline node types
 
 ### From Collection
 
-Create a stream from all assets that belong to a collection
+Create a stream from all assets that belong to a collection.
+
+> **Depends on**: DB
 
 ```json
 {
@@ -21,6 +23,8 @@ Create a stream from all assets that belong to a collection
 
 Create a stream from all assets that are tagged
 
+> **Depends on**: DB
+
 ```json
 {
     "id": "source-by-tag",
@@ -33,6 +37,8 @@ Create a stream from all assets that are tagged
 ### From Folder
 
 Create a stream from a folder
+
+> **Depends on**: Filesystem
 
 ```json
 {
@@ -47,6 +53,8 @@ Create a stream from a folder
 
 Create a stream from asset/s.
 
+> **Depends on**: DB
+
 ```json
 {
     "id": "source-by-asset",
@@ -59,6 +67,8 @@ Create a stream from asset/s.
 ### From Content
 
 Create a stream from content/s.
+
+> **Depends on**: DB
 
 ```json
 {
@@ -75,8 +85,18 @@ _Filters the pipeline (e.g. has two output nodes)_
 
 ### Property Filter
 
-Can be used to filter assets by name, size, meta properties, regex.
+Can be used to filter assets.
 
+> **Depends on**: Entity (DB), Filter configuration
+
+Filter by:
+
+* name
+* size
+* mimeType
+* dominant color
+* any meta property value
+* hash
 
 ```json
 {
@@ -94,6 +114,8 @@ Can be used to filter assets by name, size, meta properties, regex.
 
 Filter asset by using the Geo information.
 
+> **Depends on**: Entity (DB), Area data, Search?
+
 ```json
 {
     "id": "filter-by-area",
@@ -104,9 +126,26 @@ Filter asset by using the Geo information.
 }
 ```
 
+### Deduplication Filter
+
+> **Depends on**: Entity (DB), Previously registed assets (DB)
+
+```json
+{
+    "id": "deduplication-filter",
+    "type": "filter/deduplication",
+    "hash": "sha512", //sha512, sha256, md5, short hash - Hash to select deduplication criteria
+    "pass": ["…"], // Element is not duplicate
+    "reject": ["…"] // Element is duplicate, TODO: onDuplicate?
+}
+```
+
+
 ### Whitelist / Blacklist
 
 Whitelist/blacklist assets by hash or fingerprint.
+
+> **Depends on**: Entity (DB), Whitelist/Blacklist (DB)
 
 ```json
 {
@@ -119,9 +158,7 @@ Whitelist/blacklist assets by hash or fingerprint.
     "reject": ["…"]
 }
 ```
-## Meta? Node
-
-Name: step, action
+## Assign Nodes
 
 ### Assign to Collection Action
 
@@ -131,7 +168,7 @@ Format
 ```json
 { 
     "id": "assign-to-raw",
-    "type": "?/assign-collection",
+    "type": "assign/collection",
     "collection":  "raw", // Collection to assign to asset to
     "next": ["<next-node>"]
 }
@@ -141,14 +178,18 @@ Format
 
 Assigns the Asset to a user for review
 
+> **Depends on**: Entity (DB), User (DB)
+
 ```json
 {
     "id": "assign-to-joe",
-    "type": "?/assign-user",
+    "type": "assign/user",
     "user": "joeDoe",
     "next": ["<next-node>"]
 }
 ```
+
+## Script Nodes
 
 ### Event Action
 
@@ -161,12 +202,11 @@ Invokes a LUA script
 ```json
 {
     "id": "run-script",
-    "type": "?/lua",
+    "type": "script/lua",
     "script": "<LUA Script>",
     "next": ["<next-node>"]
 }
 ```
-
 
 ### Groovy Action
 
@@ -175,11 +215,13 @@ Invokes a Groovy script
 ```json
 {
     "id": "run-script",
-    "type": "?/groovy",
+    "type": "script/groovy",
     "script": "<Groovy Script>",
     "next": ["<next-node>"]
 }
 ```
+
+## Other
 
 ### ~~Mail Action~~
 
@@ -188,16 +230,21 @@ Invokes a Groovy script
 TODO: Maybe this should better be handled via webhook as it requires templates and net access.
 
 ### Auto Tag Action
+
 Automatically adds tags to the media by using a configured regex filter
+
+> **Depends on**: Entity (DB), Action configuration
 
 ### Webhook Action
 
 Invokes external API
 
+> **Depends on**: Entity (DB)
+
 ```json
 {
     "id": "invoke-api",
-    "type": "?/webhook",
+    "type": "dispatch/webhook",
     "endpoint": "URL to endpoint",
     "next": ["<next-node>"]
 }
@@ -215,23 +262,50 @@ Uses machine learning / ML API to add annotations to the media.
 
 Convert the asset to PDF
 
+> **Depends on**: Entity (DB), Data (FS,S3)
+
 ```json
 {
     "id": "convert-to-pdf",
-    "type": "?/convert-pdf",
+    "type": "generate/pdf",
     "qualityFactor": 0.90, 
+    "next": ["<next-node>"]
+}
+```
+
+### Format Conversion Action
+
+> **Depends on**: Entity (DB), Data (FS,S3)
+
+```json
+{
+    "id": "convert",
+    "type": "generate/convert",
+    "mappings": ["image/*:image/jpeg", "image/*:image/png"],
+    "next": ["<next-node>"]
+}
+```
+
+### Re-encode Action
+
+> **Depends on**: Entity (DB), Data (FS,S3)
+
+```json
+{
+    "id": "encode",
+    "type": "generate/reencode",
     "next": ["<next-node>"]
 }
 ```
 
 ### Thumbnail Generator Action
 
-Generate a thumbnail of the media
+Generate a thumbnail of the media.
 
 ```json
 {
     "id": "generate-thumbnail",
-    "type": "?/thumbnail",
+    "type": "generate/thumbnail",
     "cols": 2,
     "rows": 2,
     "tileSize": 512,
@@ -241,13 +315,14 @@ Generate a thumbnail of the media
 
 ### Fingerprint Action
 
-Generate Media Fingerprint of the asset
+Generate Media Fingerprint of the asset.
 
+> **Depends on**: Entity (DB), Data (FS,S3)
 
 ```json
 {
     "id": "fingerprint",
-    "type": "?/fingerprint",
+    "type": "generate/fingerprint",
     "algo": "v3",
     "next": ["<next-node>"]
 }
@@ -255,25 +330,28 @@ Generate Media Fingerprint of the asset
 
 ### Dominant Color Action
 
-Generate the dominant color information
+Generate the dominant color information.
 
+> **Depends on**: Entity (DB), Data (FS,S3)
 
 ```json
 {
     "id": "extract-dominant-color",
-    "type": "?/dominant-color",
+    "type": "generate/dominant-color",
     "next": ["<next-node>"]
 }
 ```
 
 ### Hash Action 
 
-Hashes the asset via SHA512, SHA256, MD5
+Hashes the asset via SHA512, SHA256, MD5.
+
+> **Depends on**: Entity (DB), Data (FS,S3)
 
 ```json
 {
     "id": "hash",
-    "type": "?/hash",
+    "type": "generate/hash",
     "md5": true,
     "sha256": true,
     "sha512": true,
@@ -283,7 +361,9 @@ Hashes the asset via SHA512, SHA256, MD5
 
 ### S3 Action
 
-Copy or move the asset via S3 API
+Copy or move the asset via S3 API.
+
+> **Depends on**: Entity (DB), Data (FS,S3)
 
 ```json
 {
@@ -297,11 +377,13 @@ Copy or move the asset via S3 API
 
 ### Upload Action
 
-Upload the asset somewhere (e.g. S3)
+Upload the asset somewhere (e.g. S3).
 
 ### Filesystem Action
 
-Moves, Deletes, Copies assets
+Moves, Deletes, Copies assets.
+
+> **Depends on**: Entity (DB), Data (FS)
 
 ```json
 {
