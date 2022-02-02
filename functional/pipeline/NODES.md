@@ -11,6 +11,7 @@ Create a stream from all assets that belong to a collection
 ```json
 {
     "id": "source-by-collection",
+    "type": "source/collection",
     "collection": ["summer-photos", "winter-photos"], // Collections to source assets from
     "next": ["<next-node>"]
 }
@@ -23,6 +24,7 @@ Create a stream from all assets that are tagged
 ```json
 {
     "id": "source-by-tag",
+    "type": "source/tag",
     "tags": ["red", "green", "blue"], // Tags to source assets from
     "next": ["<next-node>"]
 }
@@ -35,7 +37,8 @@ Create a stream from a folder
 ```json
 {
     "id": "source-by-fs",
-    "folder": "<filesystem-path>",
+    "type": "source/fs",
+    "path": "<filesystem-path>",
     "next": ["<next-node>"]
 }
 ```
@@ -47,6 +50,7 @@ Create a stream from asset/s.
 ```json
 {
     "id": "source-by-asset",
+    "type": "source/asset",
     "asset": "<reference-to-asset>", // UUIDs of the assets
     "next": ["<next-node>"]
 }
@@ -59,6 +63,7 @@ Create a stream from content/s.
 ```json
 {
     "id": "source-by-content",
+    "type": "source/content",
     "content": "<reference-to-content>", // UUIDs of the contents
     "next": ["<next-node>"]
 }
@@ -76,6 +81,7 @@ Can be used to filter assets by name, size, meta properties, regex.
 ```json
 {
     "id": "property-filter",
+    "type": "filter/property",
     "size-range-max": "100MB",
     "size-range-min": "10MB",
     "name-regex": "<regex-for-assetname>",
@@ -91,6 +97,7 @@ Filter asset by using the Geo information.
 ```json
 {
     "id": "filter-by-area",
+    "type": "filter/geo",
     "area": […], // Geo Area (user can choose it on a map)
     "pass": ["…"], // Node to be invoked for passed elements
     "reject": ["…"] // Node to be invoked for rejected elements
@@ -104,6 +111,7 @@ Whitelist/blacklist assets by hash or fingerprint.
 ```json
 {
     "id": "whitelist-filter",
+    "type": "filter/whitelist",
     "whitelistRef": ["…"],
     "blacklistRef": ["…"],
     "mode": "blacklist", // Whitelist / Blacklist mode
@@ -113,6 +121,8 @@ Whitelist/blacklist assets by hash or fingerprint.
 ```
 ## Meta? Node
 
+Name: step, action
+
 ### Assign to Collection Action
 
 Assigns the asset to a collection based on meta information
@@ -121,6 +131,7 @@ Format
 ```json
 { 
     "id": "assign-to-raw",
+    "type": "?/assign-collection",
     "collection":  "raw", // Collection to assign to asset to
     "next": ["<next-node>"]
 }
@@ -133,6 +144,7 @@ Assigns the Asset to a user for review
 ```json
 {
     "id": "assign-to-joe",
+    "type": "?/assign-user",
     "user": "joeDoe",
     "next": ["<next-node>"]
 }
@@ -149,6 +161,7 @@ Invokes a LUA script
 ```json
 {
     "id": "run-script",
+    "type": "?/lua",
     "script": "<LUA Script>",
     "next": ["<next-node>"]
 }
@@ -162,6 +175,7 @@ Invokes a Groovy script
 ```json
 {
     "id": "run-script",
+    "type": "?/groovy",
     "script": "<Groovy Script>",
     "next": ["<next-node>"]
 }
@@ -183,6 +197,7 @@ Invokes external API
 ```json
 {
     "id": "invoke-api",
+    "type": "?/webhook",
     "endpoint": "URL to endpoint",
     "next": ["<next-node>"]
 }
@@ -203,6 +218,7 @@ Convert the asset to PDF
 ```json
 {
     "id": "convert-to-pdf",
+    "type": "?/convert-pdf",
     "qualityFactor": 0.90, 
     "next": ["<next-node>"]
 }
@@ -215,6 +231,7 @@ Generate a thumbnail of the media
 ```json
 {
     "id": "generate-thumbnail",
+    "type": "?/thumbnail",
     "cols": 2,
     "rows": 2,
     "tileSize": 512,
@@ -230,6 +247,7 @@ Generate Media Fingerprint of the asset
 ```json
 {
     "id": "fingerprint",
+    "type": "?/fingerprint",
     "algo": "v3",
     "next": ["<next-node>"]
 }
@@ -243,6 +261,7 @@ Generate the dominant color information
 ```json
 {
     "id": "extract-dominant-color",
+    "type": "?/dominant-color",
     "next": ["<next-node>"]
 }
 ```
@@ -254,6 +273,7 @@ Hashes the asset via SHA512, SHA256, MD5
 ```json
 {
     "id": "hash",
+    "type": "?/hash",
     "md5": true,
     "sha256": true,
     "sha512": true,
@@ -264,6 +284,16 @@ Hashes the asset via SHA512, SHA256, MD5
 ### S3 Action
 
 Copy or move the asset via S3 API
+
+```json
+{
+    "id": "s3-operation",
+    "type": "?/s3",
+    "action": "copy|move",
+    "target": "<Target Bucket Location>",
+    "next": ["<next-node>"]
+}
+```
 
 ### Upload Action
 
@@ -276,6 +306,7 @@ Moves, Deletes, Copies assets
 ```json
 {
     "id": "fs-operation",
+    "type": "?/fs",
     "targetFolder": "/tank/assets",
     "copy": false,
     "move": true,
